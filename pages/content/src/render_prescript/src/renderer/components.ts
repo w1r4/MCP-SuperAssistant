@@ -15,7 +15,7 @@ declare global {
 
 // Performance optimizations: Cache constants and pre-compile regexes
 const MAX_INSERT_LENGTH = 39000;
-const MAX_INSERT_LENGTH_M365_COPILOT = 4000;
+const MAX_INSERT_LENGTH_M365_COPILOT = 8000;
 const WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK = ['perplexity'];
 const WEBSITE_NAME_FOR_M365_COPILOT_CHECK = ['m365copilot'];
 const websiteName = window.location.hostname
