@@ -42,11 +42,15 @@ const manifest = {
     '*://*.chat.deepseek.com/*',
     '*://*.kagi.com/*',
     '*://*.t3.chat/*',
+    '*://*.copilot.microsoft.com/*',
   ],
 
   permissions: ['storage', 'clipboardWrite'],
   // permissions: ['storage', 'scripting', 'clipboardWrite'],
   // options_page: 'options/index.html',
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'self'; trusted-types default;"
+  },
   background: {
     service_worker: 'background.js',
     type: 'module',
@@ -123,6 +127,12 @@ const manifest = {
     // Specific content script for T3 Chat tool call parsing
     {
       matches: ['*://*.t3.chat/*'],
+      js: ['content/index.iife.js'],
+      run_at: 'document_idle',
+    },
+    // Specific content script for M365 Copilot
+    {
+      matches: ['*://*.copilot.microsoft.com/*'],
       js: ['content/index.iife.js'],
       run_at: 'document_idle',
     },

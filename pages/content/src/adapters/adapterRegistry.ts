@@ -12,6 +12,7 @@ import { logMessage } from '../utils/helpers';
 
 // Do not declare Window interface properties here - they will be defined at runtime
 // This avoids TypeScript errors about conflicting declarations
+import { M365CopilotAdapter } from "./m365Copilot/m365CopilotAdapter";
 
 // Interface for the adapter registry
 interface AdapterRegistry {
@@ -106,6 +107,10 @@ class AdapterRegistryImpl implements AdapterRegistry {
 
 // Singleton instance of the adapter registry
 export const adapterRegistry = new AdapterRegistryImpl();
+
+// Register M365 Copilot Adapter
+adapterRegistry.registerAdapter(new M365CopilotAdapter());
+
 logMessage('Adapter registry initialized');
 
 // Function to get the current adapter based on the current hostname and URL

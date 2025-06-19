@@ -118,7 +118,24 @@ export async function attachFileToChatInput(file: File): Promise<boolean> {
     // Load drop listener script into page context
     const listenerUrl = chrome.runtime.getURL('dragDropListener.js');
     const scriptEl = document.createElement('script');
-    scriptEl.src = listenerUrl;
+    
+    // Handle Trusted Types for script src if available
+    if (typeof window !== 'undefined' && (window as any).trustedTypes) {
+      try {
+        let policy = (window as any).trustedTypes.policies?.get('default');
+        if (!policy) {
+          policy = (window as any).trustedTypes.createPolicy('mcp-extension-scripts', {
+            createScriptURL: (url: string) => url
+          });
+        }
+        scriptEl.src = policy.createScriptURL ? policy.createScriptURL(listenerUrl) : listenerUrl;
+      } catch (e) {
+        console.warn('Trusted Types policy creation failed, using fallback:', e);
+        scriptEl.src = listenerUrl;
+      }
+    } else {
+      scriptEl.src = listenerUrl;
+    }
     await new Promise<void>((resolve, reject) => {
       scriptEl.onload = () => resolve();
       scriptEl.onerror = () => reject(new Error('Failed to load drop listener script'));
