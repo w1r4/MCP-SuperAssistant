@@ -15,7 +15,9 @@ declare global {
 
 // Performance optimizations: Cache constants and pre-compile regexes
 const MAX_INSERT_LENGTH = 39000;
+const MAX_INSERT_LENGTH_M365_COPILOT = 4000;
 const WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK = ['perplexity'];
+const WEBSITE_NAME_FOR_M365_COPILOT_CHECK = ['m365copilot'];
 const websiteName = window.location.hostname
   .toLowerCase()
   .replace(/^www\./i, '')
@@ -992,8 +994,13 @@ export const displayResult = (
       const wrapperText = `<function_result call_id="${callId}">\n${rawResultText}\n</function_result>`;
 
       // Check result length and handle accordingly
-      if (rawResultText.length > MAX_INSERT_LENGTH && WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK.includes(websiteName)) {
-        console.log(`Result length (${wrapperText.length}) exceeds ${MAX_INSERT_LENGTH}. Attaching as file.`);
+      const shouldAttachAsFile = 
+        (rawResultText.length > MAX_INSERT_LENGTH && WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK.includes(websiteName)) ||
+        (rawResultText.length > MAX_INSERT_LENGTH_M365_COPILOT && WEBSITE_NAME_FOR_M365_COPILOT_CHECK.includes(websiteName));
+      
+      if (shouldAttachAsFile) {
+        const limit = WEBSITE_NAME_FOR_M365_COPILOT_CHECK.includes(websiteName) ? MAX_INSERT_LENGTH_M365_COPILOT : MAX_INSERT_LENGTH;
+        console.log(`Result length (${wrapperText.length}) exceeds ${limit}. Attaching as file.`);
         await attachResultAsFile(
           adapter,
           functionName,
@@ -1086,12 +1093,14 @@ export const displayResult = (
     resultsPanel.parentNode?.insertBefore(fragment, resultsPanel.nextSibling);
 
     // Handle auto-attachment for large results
-    if (
-      rawResultText.length > MAX_INSERT_LENGTH &&
-      adapter?.supportsFileUpload?.() &&
-      WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK.includes(websiteName)
-    ) {
-      console.debug(`Auto-attaching file: Result length (${rawResultText.length}) exceeds ${MAX_INSERT_LENGTH}`);
+    const shouldAutoAttach = adapter?.supportsFileUpload?.() && (
+      (rawResultText.length > MAX_INSERT_LENGTH && WEBSITE_NAME_FOR_MAX_INSERT_LENGTH_CHECK.includes(websiteName)) ||
+      (rawResultText.length > MAX_INSERT_LENGTH_M365_COPILOT && WEBSITE_NAME_FOR_M365_COPILOT_CHECK.includes(websiteName))
+    );
+    
+    if (shouldAutoAttach) {
+      const limit = WEBSITE_NAME_FOR_M365_COPILOT_CHECK.includes(websiteName) ? MAX_INSERT_LENGTH_M365_COPILOT : MAX_INSERT_LENGTH;
+      console.debug(`Auto-attaching file: Result length (${rawResultText.length}) exceeds ${limit}`);
 
       // Create efficient fake button for auto-attachment
       const fakeElements = {
